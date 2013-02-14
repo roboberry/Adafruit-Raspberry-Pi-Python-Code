@@ -10,24 +10,23 @@ from Adafruit_LEDBackpack import LEDBackpack
 
 class EightByEight:
     disp = None
-    color = 0 # 0 = single color matrix with a huge amount bugs on the hardware
 
     # Constructor
-    def __init__(self, address=0x70, color=0, debug=False):
+    def __init__(self, address=0x70, debug=False):
         if (debug):
             print "Initializing a new instance of LEDBackpack at 0x%02X" % address
         self.disp = LEDBackpack(address=address, debug=debug)
-        self.color = color
+
+# ===========================================================================
+#  A single row operations
+# ===========================================================================
 
     def writeRowRaw(self, charNumber, value):
         "Sets a row of pixels using a raw 16-bit value"
         if (charNumber > 7):
             return
             # Set the appropriate row
-        if (self.color):
-            self.disp.setBufferRow(charNumber, value)
-        else:
-            self.disp.setBufferRow(charNumber, self.wrapValue(value))
+        self.disp.setBufferRow(charNumber, self.wrapValue(value))
 
     def writeMatrix(self, mx, color=1):
         "Sets a 8x8 matrix"
@@ -35,10 +34,7 @@ class EightByEight:
         for value in mx:
             if (row > 7):
                 return
-            if (self.color):
-                self.disp.setBufferRow(row, value, False);
-            else:
-                self.disp.setBufferRow(row, self.wrapValue(value), False);
+            self.disp.setBufferRow(row, self.wrapValue(value), False);
             row+=1;
         self.disp.writeDisplay();
 
@@ -53,20 +49,40 @@ class EightByEight:
         valueLO = flip & 0x00FF
         return valueHI | valueLO
 
-    def clearPixel(self, x, y):
-        "A wrapper function to clear pixels (purely cosmetic)"
-        self.setPixel(x, y, 0)
+    # ===========================================================================
+    #  A single pixel operations
+    # ===========================================================================
 
     def setPixel(self, x, y):
         "Sets a single pixel"
         if (x > 7) | (y > 7):
             return
-            # Set the appropriate pixel
+        # Set the appropriate pixel
+        value = 2**x
         buffer = self.disp.getBuffer()
-        if (self.color):
-            self.disp.setBufferRow(y, buffer[y] | value)
-        else:
-            self.disp.setBufferRow(y, buffer[y] | wrapValue(value))
+        self.disp.setBufferRow(y, buffer[y] | self.wrapValue(value))
+
+    def clearPixel(self, x, y):
+        "Sets a single pixel"
+        if (x > 7) | (y > 7):
+            return
+            # Set the appropriate pixel
+        value = ~(2**x) & 0xFF
+        buffer = self.disp.getBuffer()
+        self.disp.setBufferRow(y, buffer[y] & self.wrapValue(value))
+
+    def switchPixel(self, x, y):
+        "Sets a single pixel"
+        if (x > 7) | (y > 7):
+            return
+            # Set the appropriate pixel
+        value = 2**x
+        buffer = self.disp.getBuffer()
+        self.disp.setBufferRow(y, buffer[y] ^ self.wrapValue(value))
+
+    # ===========================================================================
+    #
+    # ===========================================================================
 
     def clear(self):
         "Clears the entire display"
