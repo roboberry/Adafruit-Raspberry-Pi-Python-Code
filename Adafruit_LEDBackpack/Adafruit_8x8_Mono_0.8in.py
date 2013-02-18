@@ -5,7 +5,7 @@ import datetime
 from Adafruit_LEDBackpack import LEDBackpack
 
 # ===========================================================================
-# 8x8 Monochrome 0.8 inches Pixel Display
+# 8x8 Monochrome 0.8 inches Pixel Display r1
 # ===========================================================================
 
 class EightByEight:
